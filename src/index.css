@@ -1,0 +1,99 @@
+:root {
+  /* Colors */
+  --bg: #F7F6F3;
+  --text: #111111;
+  --accent: #8B0000;
+  --success: #4A6741;
+  --warning: #BC8F22;
+  --border: rgba(17, 17, 17, 0.1);
+  --border-focus: #111111;
+
+  /* Spacing Scale */
+  --s-8: 8px;
+  --s-16: 16px;
+  --s-24: 24px;
+  --s-40: 40px;
+  --s-64: 64px;
+
+  /* Typography */
+  --font-serif: "Libre Baskerville", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --line-height: 1.6;
+  --max-width: 720px;
+
+  /* Interaction */
+  --transition: 180ms ease-in-out;
+  --radius: 4px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--s-16);
+}
+
+p {
+  max-width: var(--max-width);
+  margin-bottom: var(--s-24);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--transition);
+}
+
+input, textarea {
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--s-24);
+}
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-8 { gap: var(--s-8); }
+.gap-16 { gap: var(--s-16); }
+.gap-24 { gap: var(--s-24); }
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--s-40);
+  margin-top: var(--s-40);
+}
