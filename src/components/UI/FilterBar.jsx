@@ -2,23 +2,36 @@ import React from 'react';
 
 const FilterBar = ({ filters, onFilterChange }) => {
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        onFilterChange(name, value);
+        const { name, value, type, checked } = e.target;
+        onFilterChange(name, type === 'checkbox' ? checked : value);
     };
 
     return (
         <div className="filter-bar">
-            <div className="search-box">
-                <input
-                    type="text"
-                    name="query"
-                    placeholder="Search by title or company..."
-                    value={filters.query}
-                    onChange={handleChange}
-                />
+            <div className="search-row flex justify-between items-center gap-24">
+                <div className="search-box flex-1">
+                    <input
+                        type="text"
+                        name="query"
+                        placeholder="Search by title or company..."
+                        value={filters.query}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="toggle-box">
+                    <label className="switch-label">
+                        <input
+                            type="checkbox"
+                            name="onlyMatches"
+                            checked={filters.onlyMatches}
+                            onChange={handleChange}
+                        />
+                        Show only jobs above my threshold
+                    </label>
+                </div>
             </div>
 
-            <div className="dropdowns flex gap-16" style={{ marginTop: '16px', flexWrap: 'wrap' }}>
+            <div className="dropdowns flex gap-12" style={{ marginTop: '16px', flexWrap: 'wrap' }}>
                 <select name="location" value={filters.location} onChange={handleChange}>
                     <option value="All Locations">All Locations</option>
                     <option value="Bangalore">Bangalore</option>
@@ -53,8 +66,9 @@ const FilterBar = ({ filters, onFilterChange }) => {
                 </select>
 
                 <select name="sort" value={filters.sort} onChange={handleChange}>
-                    <option value="Latest">Latest</option>
-                    <option value="Salary">Highest Salary</option>
+                    <option value="Latest">Sort: Latest</option>
+                    <option value="Match Score">Sort: Match Score</option>
+                    <option value="Salary">Sort: Salary</option>
                 </select>
             </div>
 
@@ -62,26 +76,31 @@ const FilterBar = ({ filters, onFilterChange }) => {
         .filter-bar {
           margin-bottom: var(--s-40);
         }
-        input {
+        input[type="text"] {
           width: 100%;
           padding: 12px 16px;
           border: 1px solid var(--border);
           border-radius: var(--radius);
           background: white;
-          font-family: var(--font-size);
           font-size: 16px;
           outline: none;
-          transition: border-color var(--transition);
         }
-        input:focus {
-          border-color: var(--border-focus);
+        .switch-label {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--accent);
+          cursor: pointer;
+          white-space: nowrap;
         }
         select {
           padding: 8px 12px;
           border: 1px solid var(--border);
           border-radius: var(--radius);
           background: white;
-          font-size: 14px;
+          font-size: 13px;
           color: rgba(17,17,17,0.7);
           cursor: pointer;
         }

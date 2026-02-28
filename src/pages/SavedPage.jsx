@@ -3,14 +3,23 @@ import { jobs } from '../data/jobs';
 import JobCard from '../components/UI/JobCard';
 import JobModal from '../components/UI/JobModal';
 import { Card } from '../components/Layout/Workspace';
+import { calculateMatchScore } from '../utils/scoring';
 
 const SavedPage = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [preferences, setPreferences] = useState(null);
 
   useEffect(() => {
     const savedIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
-    const result = jobs.filter(job => savedIds.includes(job.id));
+    const prefs = JSON.parse(localStorage.getItem('jobTrackerPreferences'));
+    setPreferences(prefs);
+
+    const result = jobs.filter(job => savedIds.includes(job.id)).map(job => ({
+      ...job,
+      matchScore: calculateMatchScore(job, prefs)
+    }));
+
     setSavedJobs(result);
   }, []);
 
@@ -34,6 +43,7 @@ const SavedPage = () => {
               isSaved={true}
               onSave={handleRemove}
               onView={(j) => setSelectedJob(j)}
+              matchScore={preferences ? job.matchScore : undefined}
             />
           ))
         ) : (
