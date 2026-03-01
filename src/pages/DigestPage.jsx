@@ -8,11 +8,14 @@ import { Link } from 'react-router-dom';
 const DigestPage = () => {
   const [digest, setDigest] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [history, setHistory] = useState([]);
   const [todayStr] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     const prefs = JSON.parse(localStorage.getItem('jobTrackerPreferences'));
+    const events = JSON.parse(localStorage.getItem('jobTrackerEvents') || '[]');
     setPreferences(prefs);
+    setHistory(events);
 
     const savedDigest = JSON.parse(localStorage.getItem(`jobTrackerDigest_${todayStr}`));
     if (savedDigest) {
@@ -23,13 +26,11 @@ const DigestPage = () => {
   const generateDigest = () => {
     if (!preferences) return;
 
-    // 1. Calculate scores for all jobs
     const scoredJobs = jobs.map(job => ({
       ...job,
       matchScore: calculateMatchScore(job, preferences)
     }));
 
-    // 2. Select top 10
     const topJobs = scoredJobs
       .sort((a, b) => {
         if (b.matchScore !== a.matchScore) {
@@ -145,6 +146,37 @@ const DigestPage = () => {
             </div>
           </Card>
         )}
+
+        {/* New History Section */}
+        <div className="status-history-section" style={{ marginTop: '64px' }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '24px' }}>Recent Status Updates</h2>
+          {history.length > 0 ? (
+            <div className="history-list">
+              {history.map((event, idx) => (
+                <Card key={idx} style={{ marginBottom: '12px' }}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="history-title">{event.title}</span>
+                      <span className="history-company"> at {event.company}</span>
+                    </div>
+                    <div className="flex items-center gap-12">
+                      <span className={`history-status status-${event.status}`}>
+                        {event.status.replace('-', ' ')}
+                      </span>
+                      <span className="history-date">
+                        {new Date(event.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <p style={{ textAlign: 'center', color: 'rgba(17,17,17,0.4)', padding: '24px' }}>No recent status updates.</p>
+            </Card>
+          )}
+        </div>
       </div>
 
       <style jsx>{`
@@ -164,7 +196,6 @@ const DigestPage = () => {
           background: #FFFFFF;
           border: 1px solid var(--border);
           border-radius: 8px;
-          overflow: hidden;
           box-shadow: 0 4px 24px rgba(0,0,0,0.05);
         }
         .email-header {
@@ -189,37 +220,29 @@ const DigestPage = () => {
           padding: 24px 0;
           border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-        .digest-item:last-child {
-          border-bottom: none;
-        }
         .job-title {
           font-family: var(--font-serif);
           font-size: 18px;
           margin-bottom: 4px;
         }
-        .job-subtitle {
-          font-weight: 600;
-          font-size: 14px;
-          color: rgba(17,17,17,0.8);
-        }
-        .job-meta {
-          font-size: 13px;
-          color: rgba(17,17,17,0.5);
-          margin-top: 4px;
-        }
+        .job-subtitle { font-weight: 600; font-size: 14px; }
+        .job-meta { font-size: 13px; color: rgba(17,17,17,0.5); margin-top: 4px; }
         .email-footer {
-          padding: 32px 40px;
-          background: #fafaf9;
-          text-align: center;
-          font-size: 13px;
-          color: rgba(17,17,17,0.4);
-          border-top: 1px solid var(--border);
+          padding: 32px 40px; background: #fafaf9; text-align: center; font-size: 13px; color: rgba(17,17,17,0.4); border-top: 1px solid var(--border);
         }
-        .sim-note {
-          margin-top: 8px;
-          font-style: italic;
-          font-size: 11px;
+        .sim-note { margin-top: 8px; font-style: italic; font-size: 11px; }
+        
+        /* History Styles */
+        .history-title { font-weight: 600; font-size: 15px; }
+        .history-company { color: rgba(17,17,17,0.5); font-size: 15px; }
+        .history-status {
+          font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; color: white;
         }
+        .status-applied { background: #2563eb; }
+        .status-rejected { background: #8B0000; }
+        .status-selected { background: #4A6741; }
+        .status-not-applied { background: rgba(17, 17, 17, 0.4); }
+        .history-date { font-size: 12px; color: rgba(17,17,17,0.4); }
       `}</style>
     </div>
   );

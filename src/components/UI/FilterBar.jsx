@@ -65,6 +65,14 @@ const FilterBar = ({ filters, onFilterChange }) => {
                     <option value="Indeed">Indeed</option>
                 </select>
 
+                <select name="status" value={filters.status} onChange={handleChange}>
+                    <option value="All">All Statuses</option>
+                    <option value="not-applied">Not Applied</option>
+                    <option value="applied">Applied</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="selected">Selected</option>
+                </select>
+
                 <select name="sort" value={filters.sort} onChange={handleChange}>
                     <option value="Latest">Sort: Latest</option>
                     <option value="Match Score">Sort: Match Score</option>

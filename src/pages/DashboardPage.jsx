@@ -4,18 +4,22 @@ import { jobs } from '../data/jobs';
 import FilterBar from '../components/UI/FilterBar';
 import JobCard from '../components/UI/JobCard';
 import JobModal from '../components/UI/JobModal';
+import Toast from '../components/UI/Toast';
 import { calculateMatchScore } from '../utils/scoring';
 
 const DashboardPage = () => {
   const [preferences, setPreferences] = useState(null);
   const [savedJobIds, setSavedJobIds] = useState([]);
+  const [jobStatuses, setJobStatuses] = useState({});
   const [selectedJob, setSelectedJob] = useState(null);
+  const [toast, setToast] = useState(null);
   const [filters, setFilters] = useState({
     query: '',
     location: 'All Locations',
     mode: 'All Modes',
     experience: 'All Experience',
     source: 'All Sources',
+    status: 'All',
     sort: 'Latest',
     onlyMatches: false
   });
@@ -24,8 +28,10 @@ const DashboardPage = () => {
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('savedJobs') || '[]');
     const prefs = JSON.parse(localStorage.getItem('jobTrackerPreferences'));
+    const statuses = JSON.parse(localStorage.getItem('jobTrackerStatus') || '{}');
     setSavedJobIds(saved);
     setPreferences(prefs);
+    setJobStatuses(statuses);
   }, []);
 
   const handleSave = (id) => {
@@ -39,19 +45,41 @@ const DashboardPage = () => {
     localStorage.setItem('savedJobs', JSON.stringify(updated));
   };
 
+  const handleStatusChange = (jobId, newStatus) => {
+    const updatedStatuses = { ...jobStatuses, [jobId]: newStatus };
+    setJobStatuses(updatedStatuses);
+    localStorage.setItem('jobTrackerStatus', JSON.stringify(updatedStatuses));
+
+    // Log event for history
+    const job = jobs.find(j => j.id === jobId);
+    const events = JSON.parse(localStorage.getItem('jobTrackerEvents') || '[]');
+    const newEvent = {
+      jobId,
+      title: job?.title,
+      company: job?.company,
+      status: newStatus,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('jobTrackerEvents', JSON.stringify([newEvent, ...events].slice(0, 50)));
+
+    if (newStatus !== 'not-applied') {
+      setToast(`Status updated: ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
+    }
+  };
+
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   // Compute matches and apply filters
   const processedJobs = useMemo(() => {
-    // 1. Calculate scores for all jobs
     let result = jobs.map(job => ({
       ...job,
-      matchScore: calculateMatchScore(job, preferences)
+      matchScore: calculateMatchScore(job, preferences),
+      status: jobStatuses[job.id] || 'not-applied'
     }));
 
-    // 2. Apply Filters (AND logic)
+    // Apply Filters (AND logic)
     result = result.filter(job => {
       const matchQuery = job.title.toLowerCase().includes(filters.query.toLowerCase()) ||
         job.company.toLowerCase().includes(filters.query.toLowerCase());
@@ -59,12 +87,13 @@ const DashboardPage = () => {
       const matchMode = filters.mode === 'All Modes' || job.mode === filters.mode;
       const matchExp = filters.experience === 'All Experience' || job.experience === filters.experience;
       const matchSource = filters.source === 'All Sources' || job.source === filters.source;
+      const matchStatus = filters.status === 'All' || job.status === filters.status;
       const matchThreshold = !filters.onlyMatches || !preferences || job.matchScore >= (preferences.minMatchScore || 0);
 
-      return matchQuery && matchLocation && matchMode && matchExp && matchSource && matchThreshold;
+      return matchQuery && matchLocation && matchMode && matchExp && matchSource && matchStatus && matchThreshold;
     });
 
-    // 3. Sorting
+    // Sorting
     if (filters.sort === 'Match Score') {
       result.sort((a, b) => b.matchScore - a.matchScore);
     } else if (filters.sort === 'Salary') {
@@ -74,12 +103,11 @@ const DashboardPage = () => {
         return valB - valA;
       });
     } else {
-      // Latest (postedDaysAgo ascending)
       result.sort((a, b) => a.postedDaysAgo - b.postedDaysAgo);
     }
 
     return result;
-  }, [filters, preferences]);
+  }, [filters, preferences, jobStatuses]);
 
   return (
     <div className="dashboard-page">
@@ -108,12 +136,14 @@ const DashboardPage = () => {
               onSave={handleSave}
               onView={(j) => setSelectedJob(j)}
               matchScore={preferences ? job.matchScore : undefined}
+              status={jobStatuses[job.id]}
+              onStatusChange={handleStatusChange}
             />
           ))
         ) : (
           <div className="no-results" style={{ textAlign: 'center', padding: '64px 0' }}>
             <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px' }}>
-              {filters.onlyMatches ? "No roles match your criteria." : "No jobs match your search."}
+              {filters.status !== 'All' ? "No roles with this status." : filters.onlyMatches ? "No roles match your criteria." : "No jobs match your search."}
             </h3>
             <p style={{ color: 'rgba(17,17,17,0.5)', marginTop: '8px' }}>
               {filters.onlyMatches ? "Adjust filters or lower your match threshold." : "Try adjusting your filters or search terms."}
@@ -123,6 +153,8 @@ const DashboardPage = () => {
       </div>
 
       {selectedJob && <JobModal job={selectedJob} onClose={() => setSelectedJob(null)} />}
+
+      <Toast message={toast} onClear={() => setToast(null)} />
 
       <style jsx>{`
         .dashboard-page {
