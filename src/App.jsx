@@ -12,6 +12,8 @@ import SettingsPage from './pages/SettingsPage';
 import SavedPage from './pages/SavedPage';
 import DigestPage from './pages/DigestPage';
 import ProofPage from './pages/ProofPage';
+import TestChecklistPage from './pages/TestChecklistPage';
+import ShipPage from './pages/ShipPage';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -25,6 +27,10 @@ function App() {
           <Route path="/digest" element={<DigestPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/proof" element={<ProofPage />} />
+
+          {/* Internal QA Routes */}
+          <Route path="/jt/07-test" element={<TestChecklistPage />} />
+          <Route path="/jt/08-ship" element={<ShipPage />} />
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
